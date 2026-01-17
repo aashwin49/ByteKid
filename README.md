@@ -1,14 +1,40 @@
-# React + Vite
+# ByteKid 🚀
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+ByteKid is a fun coding practice web app built to help beginners (especially kids) learn programming through small interactive challenges.
 
-Currently, two official plugins are available:
+You can write code directly in the browser, run it, earn points, unlock badges, and compete on the leaderboard.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
+- Interactive coding playground (write code inside the app)
+- Beginner-friendly coding challenges (Hello World, Add Numbers, Reverse String, etc.)
+- Run button to test your code and see output
+- Progress tracking (see how much you’ve completed)
+- Points and badge system to reward learning
+- Leaderboard to compete and stay motivated
+- Clean UI with simple navigation (Home / Playground / Leaderboard)
 
-## Expanding the ESLint configuration
+## Built With
+- React + Vite
+- React Router
+- Monaco Editor
+- Framer Motion
+- Lucide Icons
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-# ByteKid
-# ByteKid
+## Run Locally
+Clone the repo:
+```bash
+git clone https://github.com/aashwin49/ByteKid.git
+cd ByteKid
+
+2) Install dependencies:
+npm install
+
+3) Start the project:
+npm run dev
+
+Future Improvements
+	•	Add more challenges and difficulty levels
+	•	Add real user login + profiles
+	•	Save progress permanently (database)
+	•	Add more badges and rewards
+	•	Deploy the app online
