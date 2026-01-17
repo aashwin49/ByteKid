@@ -26,13 +26,13 @@ https://bytekid.vercel.app
 ## Run Locally
 Clone the repo:
 ```bash
-git clone https://github.com/aashwin49/ByteKid.git
 cd ByteKid
+git clone https://github.com/aashwin49/ByteKid.git
 
-2) Install dependencies:
+1) Install dependencies:
 npm install
 
-3) Start the project:
+2) Start the project:
 npm run dev
 
 Future Improvements
