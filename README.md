@@ -4,6 +4,9 @@ ByteKid is a fun coding practice web app built to help beginners (especially kid
 
 You can write code directly in the browser, run it, earn points, unlock badges, and compete on the leaderboard.
 
+## Live Demo
+https://bytekid.vercel.app
+
 ## Features
 - Interactive coding playground (write code inside the app)
 - Beginner-friendly coding challenges (Hello World, Add Numbers, Reverse String, etc.)
