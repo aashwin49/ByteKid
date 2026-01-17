@@ -1,18 +1,51 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-function Navbar() {
-  const points = localStorage.getItem("points") || 0;
+function Navbar({ points, badge }) {
+  const location = useLocation();
 
   return (
-    <header className="bg-blue-600 text-white p-4 flex justify-between">
-      <h1 className="text-xl font-bold">
-        <Link to="/">ByteKid</Link>
-      </h1>
-      <nav className="flex gap-4">
-        <Link to="/playground" className="hover:underline">Playground</Link>
-        <Link to="/leaderboard" className="hover:underline">Leaderboard</Link>
-      </nav>
-      <div>⭐ {points}</div>
+    <header>
+      <div className="container header-content">
+        {/* Logo */}
+        <div className="logo">
+          <i className="fas fa-laptop-code"></i>
+          <span>ByteKid</span>
+        </div>
+
+        {/* Navigation Links */}
+        <nav>
+          <ul>
+            <li>
+              <Link to="/" className={location.pathname === "/" ? "active" : ""}>
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/playground"
+                className={location.pathname === "/playground" ? "active" : ""}
+              >
+                Playground
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/leaderboard"
+                className={location.pathname === "/leaderboard" ? "active" : ""}
+              >
+                Leaderboard
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        {/* ✅ Dynamic Stats */}
+        <div className="nav-stats">
+          <span className="points">⭐ {points}</span>
+          <span className="divider">|</span>
+          <span className="level">{badge}</span>
+        </div>
+      </div>
     </header>
   );
 }

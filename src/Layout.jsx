@@ -1,27 +1,20 @@
-// src/Layout.js
 import React from "react";
 import { Link } from "react-router-dom";
-import { Code2 } from "lucide-react";
 
 export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
-      {/* Header / Navbar */}
+      {/* Navbar */}
       <header className="py-4 px-6 md:px-12 border-b border-gray-700/50 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <Code2 className="w-8 h-8 text-blue-400" />
-          <h1 className="text-2xl font-bold text-white tracking-wider">
-            ByteKid
-          </h1>
-        </div>
+        <h1 className="text-2xl font-bold text-white">ByteKid</h1>
         <nav className="flex gap-6 text-gray-300 text-sm font-medium">
-          <Link to="/" className="hover:text-white transition">Home</Link>
-          <Link to="/playground" className="hover:text-white transition">Playground</Link>
-          <Link to="/leaderboard" className="hover:text-white transition">Leaderboard</Link>
+          <Link to="/">Home</Link>
+          <Link to="/playground">Playground</Link>
+          <Link to="/leaderboard">Leaderboard</Link>
         </nav>
       </header>
 
-      {/* Main content */}
+      {/* Page content */}
       <main className="p-4 md:p-8">{children}</main>
 
       {/* Footer */}
