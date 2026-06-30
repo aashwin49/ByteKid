@@ -1,7 +1,12 @@
-// src/pages/Playground.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import getBadge from "../getBadge";
+import {
+  getPlayerName,
+  loadLocalProgress,
+  saveLocalProgress,
+  syncProgress,
+} from "../services/progressApi";
 
-// ----------------- Challenges -----------------
 const challenges = [
   {
     title: "Hello World",
@@ -38,8 +43,7 @@ const challenges = [
   },
   {
     title: "Palindrome Checker",
-    description:
-      "Build isPalindrome(str) that returns true if str is a palindrome.",
+    description: "Build isPalindrome(str) that returns true if str is a palindrome.",
     starterCode: `function isPalindrome(str) {\n  // Your code here\n}`,
     testCases: [
       { input: `console.log(isPalindrome("madam"));`, expected: "true" },
@@ -53,91 +57,90 @@ export default function Playground({ points, setPoints }) {
   const [output, setOutput] = useState("");
   const [currentChallenge, setCurrentChallenge] = useState(0);
   const [completedChallenges, setCompletedChallenges] = useState([]);
+  const [syncStatus, setSyncStatus] = useState("Saved locally");
 
-  // load saved progress
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("completedChallenges")) || [];
-    setCompletedChallenges(saved);
-  }, []);
+    const saved = loadLocalProgress();
+    setCompletedChallenges(saved.completedChallenges);
+    setPoints(saved.points);
+    getPlayerName();
+  }, [setPoints]);
 
   const challenge = challenges[currentChallenge];
+  const progress = (completedChallenges.length / challenges.length) * 100;
 
-  // run tests
-  const runCode = () => {
-    let results = [];
+  const saveProgress = async (nextPoints, nextCompletedChallenges) => {
+    const progressData = {
+      points: nextPoints,
+      completedChallenges: nextCompletedChallenges,
+    };
+
+    saveLocalProgress(progressData);
+    const result = await syncProgress(progressData);
+    setSyncStatus(result.offline ? "Saved locally - backend offline" : "Synced to leaderboard");
+  };
+
+  const runCode = async () => {
+    const results = [];
     let allPassed = true;
 
-    challenge.testCases.forEach((test, i) => {
-      let logs = [];
+    challenge.testCases.forEach((test, index) => {
+      const logs = [];
       const oldLog = console.log;
       console.log = (...args) => logs.push(args.join(" "));
 
       try {
-        eval(code + "\n" + test.input);
-      } catch (err) {
-        logs.push("Error: " + err.message);
+        eval(`${code}\n${test.input}`);
+      } catch (error) {
+        logs.push(`Error: ${error.message}`);
         allPassed = false;
+      } finally {
+        console.log = oldLog;
       }
 
-      console.log = oldLog;
       const actual = logs.join("\n").trim();
 
       if (actual === test.expected) {
-        results.push(`✅ Test ${i + 1} Passed`);
+        results.push(`Test ${index + 1} passed`);
       } else {
-        results.push(
-          `❌ Test ${i + 1} Failed → Expected "${test.expected}", Got "${actual}"`
-        );
+        results.push(`Test ${index + 1} failed: expected "${test.expected}", got "${actual}"`);
         allPassed = false;
       }
     });
 
-    // give points once per challenge
     if (allPassed && !completedChallenges.includes(currentChallenge)) {
-      results.push("\n🎉 Challenge Complete! +10 Points!");
-      const updated = [...completedChallenges, currentChallenge];
-      setCompletedChallenges(updated);
-      localStorage.setItem("completedChallenges", JSON.stringify(updated));
+      const nextCompletedChallenges = [...completedChallenges, currentChallenge];
+      const nextPoints = points + 10;
 
-      const newPts = points + 10;
-      setPoints(newPts); // 🔥 update parent state
-      localStorage.setItem("points", newPts.toString());
+      setCompletedChallenges(nextCompletedChallenges);
+      setPoints(nextPoints);
+      await saveProgress(nextPoints, nextCompletedChallenges);
+      results.push("Challenge complete. +10 points added to the leaderboard.");
+    } else if (allPassed) {
+      results.push("Challenge already completed. Your leaderboard score is unchanged.");
     }
 
     setOutput(results.join("\n"));
   };
 
-  // reset progress
-  const resetProgress = () => {
+  const resetProgress = async () => {
     if (window.confirm("Reset all progress?")) {
-      localStorage.clear();
-      setCompletedChallenges([]);
+      const nextCompletedChallenges = [];
+      setCompletedChallenges(nextCompletedChallenges);
       setPoints(0);
       setCurrentChallenge(0);
       setCode(challenges[0].starterCode);
-      setOutput("Progress reset!");
+      setOutput("Progress reset.");
+      await saveProgress(0, nextCompletedChallenges);
     }
   };
 
-  // badge logic
-  const getBadge = (p) => {
-    if (p >= 40) return "🥇 Gold";
-    if (p >= 20) return "🥈 Silver";
-    if (p >= 10) return "🥉 Bronze";
-    return "🔒 None";
-  };
-
-  const progress = (completedChallenges.length / challenges.length) * 100;
-
   return (
-    <div className="container">
-      {/* Stats */}
+    <div className="container playground-page">
       <section className="dashboard">
         <div className="stats-grid">
           <div className="stat-card points">
-            <div className="stat-icon">
-              <i className="fas fa-star"></i>
-            </div>
+            <div className="stat-icon">★</div>
             <div className="stat-content">
               <h3>Points</h3>
               <p>{points}</p>
@@ -145,9 +148,7 @@ export default function Playground({ points, setPoints }) {
           </div>
 
           <div className="stat-card badge">
-            <div className="stat-icon">
-              <i className="fas fa-medal"></i>
-            </div>
+            <div className="stat-icon">◎</div>
             <div className="stat-content">
               <h3>Badge</h3>
               <p>{getBadge(points)}</p>
@@ -155,105 +156,90 @@ export default function Playground({ points, setPoints }) {
           </div>
 
           <div className="stat-card completed">
-            <div className="stat-icon">
-              <i className="fas fa-check-circle"></i>
-            </div>
+            <div className="stat-icon">✓</div>
             <div className="stat-content">
               <h3>Completed</h3>
-              <p>
-                {completedChallenges.length} / {challenges.length}
-              </p>
+              <p>{completedChallenges.length} / {challenges.length}</p>
             </div>
           </div>
         </div>
 
         <div className="progress-section">
-          <h3>Your Progress</h3>
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{ width: `${progress}%` }}
-            ></div>
+          <div>
+            <h3>Your Progress</h3>
+            <p>{syncStatus}</p>
           </div>
-          <p>{Math.round(progress)}% Complete</p>
+          <div className="progress-bar">
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <strong>{Math.round(progress)}% Complete</strong>
         </div>
       </section>
 
-      {/* Challenge Selector */}
       <section className="challenges-section">
-        <h2 className="section-title">
-          <i className="fas fa-tasks"></i> Select a Challenge
-        </h2>
+        <h2 className="section-title">Select a Challenge</h2>
         <div className="challenge-cards">
-          {challenges.map((ch, i) => (
-            <div
-              key={i}
+          {challenges.map((item, index) => (
+            <button
+              key={item.title}
               className={`challenge-card ${
-                completedChallenges.includes(i) ? "completed-challenge" : ""
-              }`}
+                completedChallenges.includes(index) ? "completed-challenge" : ""
+              } ${currentChallenge === index ? "active-challenge" : ""}`}
               onClick={() => {
-                setCurrentChallenge(i);
-                setCode(ch.starterCode);
+                setCurrentChallenge(index);
+                setCode(item.starterCode);
                 setOutput("");
               }}
+              type="button"
             >
-              <div className="challenge-header">
-                <h3>{ch.title}</h3>
-                {completedChallenges.includes(i) && (
-                  <i className="fas fa-check completed-check"></i>
-                )}
-              </div>
-              <div className="challenge-content">
-                <p>{ch.description}</p>
-              </div>
-            </div>
+              <span className="challenge-number">{index + 1}</span>
+              <span>
+                <strong>{item.title}</strong>
+                <small>{item.description}</small>
+              </span>
+              {completedChallenges.includes(index) && <span className="completed-check">✓</span>}
+            </button>
           ))}
         </div>
       </section>
 
-      {/* Current Challenge Info */}
       <section className="current-challenge">
-        <h2 className="section-title">
-          <i className="fas fa-code"></i> {challenge.title}
-        </h2>
+        <p className="eyebrow">Current Mission</p>
+        <h2>{challenge.title}</h2>
         <p>{challenge.description}</p>
       </section>
 
-      {/* Editor */}
       <section className="editor-container">
         <div className="editor-header">
-          <i className="fas fa-code"></i> <h3>Your Code</h3>
+          <h3>Your Code</h3>
+          <span>{challenge.testCases.length} tests</span>
         </div>
         <textarea
           className="editor"
           value={code}
-          onChange={(e) => setCode(e.target.value)}
+          onChange={(event) => setCode(event.target.value)}
           spellCheck="false"
         />
       </section>
 
-      {/* Actions */}
       <div className="actions">
-        <button className="btn btn-run" onClick={runCode}>
-          <i className="fas fa-play-circle"></i> Run Tests
+        <button className="btn btn-run" onClick={runCode} type="button">
+          ▶ Run Tests
         </button>
-        <button className="btn btn-reset" onClick={resetProgress}>
-          <i className="fas fa-redo"></i> Reset Progress
+        <button className="btn btn-reset" onClick={resetProgress} type="button">
+          Reset Progress
         </button>
       </div>
 
-      {/* Output */}
       <section className="output-console">
         <div className="console-header">
-          <i className="fas fa-terminal"></i> <h3>Output</h3>
+          <h3>Output</h3>
         </div>
         <div className="console-content">
           {output ? (
-            output.split("\n").map((line, i) => <p key={i}>{line}</p>)
+            output.split("\n").map((line) => <p key={line}>{line}</p>)
           ) : (
-            <p>
-              <i>Run tests to see output...</i>
-            </p>
+            <p>Run tests to see output...</p>
           )}
         </div>
       </section>

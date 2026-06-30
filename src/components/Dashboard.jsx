@@ -1,27 +1,29 @@
-import Dashboard from "../components/Dashboard";
-
-function Playground() {
-  // Example state values (replace with localStorage / logic later)
-  const points = parseInt(localStorage.getItem("points")) || 0;
-  const completed = JSON.parse(localStorage.getItem("completedChallenges"))?.length || 0;
-  const total = 5;
-
-  const getBadge = (points) => {
-    if (points >= 30) return "🏆 Pro Coder";
-    if (points >= 20) return "🧑‍💻 Intermediate";
-    if (points >= 10) return "👶 Beginner";
-    return "🔓 No Badge Yet";
-  };
-
+export default function Dashboard({ points, badge, completed, total }) {
   return (
-    <div>
-      <Dashboard
-        points={points}
-        badge={getBadge(points)}
-        completed={completed}
-        total={total}
-      />
-      {/* other sections: ChallengeSelector, CodeEditor, etc */}
-    </div>
+    <section className="dashboard compact-dashboard">
+      <div className="stats-grid">
+        <div className="stat-card points">
+          <div className="stat-icon">★</div>
+          <div className="stat-content">
+            <h3>Points</h3>
+            <p>{points}</p>
+          </div>
+        </div>
+        <div className="stat-card badge">
+          <div className="stat-icon">◎</div>
+          <div className="stat-content">
+            <h3>Badge</h3>
+            <p>{badge}</p>
+          </div>
+        </div>
+        <div className="stat-card completed">
+          <div className="stat-icon">✓</div>
+          <div className="stat-content">
+            <h3>Completed</h3>
+            <p>{completed} / {total}</p>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
