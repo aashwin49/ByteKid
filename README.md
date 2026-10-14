@@ -8,19 +8,21 @@ You can write code directly in the browser, run it, earn points, unlock badges, 
 
 ## Features
 
-- Interactive coding playground (write code inside the app)
+- Interactive coding playground with real-time test execution
 - Beginner-friendly coding challenges (Hello World, Add Numbers, Reverse String, etc.)
-- Run button to test your code and see output
+- Run button to test your code and see console output
 - Progress tracking (see how much you've completed)
 - Points and badge system to reward learning
 - Leaderboard to compete and stay motivated
 - Clean UI with simple navigation (Home / Playground / Leaderboard)
+- Full static type safety with **TypeScript**
 - Local Express.js backend with progress-save and leaderboard APIs (verified locally, not yet deployed — app falls back to local storage in production)
 
 ## Built With
 
 **Frontend**
 - React + Vite
+- **TypeScript** (Strict type checking, domain interfaces, and typed props)
 - React Router
 - Monaco Editor
 - Framer Motion
@@ -35,9 +37,9 @@ You can write code directly in the browser, run it, earn points, unlock badges, 
 
 Clone the repo:
 ```bash
-git clone https://github.com/aashwin49/ByteKid.git
+git clone [https://github.com/aashwin49/ByteKid.git](https://github.com/aashwin49/ByteKid.git)
 cd ByteKid
-```
+
 
 Install dependencies:
 ```bash
