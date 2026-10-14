@@ -1,5 +1,11 @@
-export default function OutputConsole({ output }) {
-  const formatLine = (line) => {
+import React from "react";
+
+interface OutputConsoleProps {
+  output: string;
+}
+
+export default function OutputConsole({ output }: OutputConsoleProps) {
+  const formatLine = (line: string) => {
     if (line.startsWith("✅")) return <span className="text-green-400">{line}</span>;
     if (line.startsWith("❌") || line.startsWith("Error:"))
       return <span className="text-red-400">{line}</span>;

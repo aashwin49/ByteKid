@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import getBadge from "../getBadge";
 import {
   getPlayerName,
@@ -7,7 +7,24 @@ import {
   syncProgress,
 } from "../services/progressApi";
 
-const challenges = [
+interface TestCase {
+  input: string;
+  expected: string;
+}
+
+interface ChallengeDef {
+  title: string;
+  description: string;
+  starterCode: string;
+  testCases: TestCase[];
+}
+
+interface PlaygroundProps {
+  points: number;
+  setPoints: React.Dispatch<React.SetStateAction<number>>;
+}
+
+const challenges: ChallengeDef[] = [
   {
     title: "Hello World",
     description: "Print 'Hello World' to the console.",
@@ -52,12 +69,12 @@ const challenges = [
   },
 ];
 
-export default function Playground({ points, setPoints }) {
-  const [code, setCode] = useState(challenges[0].starterCode);
-  const [output, setOutput] = useState("");
-  const [currentChallenge, setCurrentChallenge] = useState(0);
-  const [completedChallenges, setCompletedChallenges] = useState([]);
-  const [syncStatus, setSyncStatus] = useState("Saved locally");
+export default function Playground({ points, setPoints }: PlaygroundProps) {
+  const [code, setCode] = useState<string>(challenges[0].starterCode);
+  const [output, setOutput] = useState<string>("");
+  const [currentChallenge, setCurrentChallenge] = useState<number>(0);
+  const [completedChallenges, setCompletedChallenges] = useState<number[]>([]);
+  const [syncStatus, setSyncStatus] = useState<string>("Saved locally");
 
   useEffect(() => {
     const saved = loadLocalProgress();
@@ -69,7 +86,7 @@ export default function Playground({ points, setPoints }) {
   const challenge = challenges[currentChallenge];
   const progress = (completedChallenges.length / challenges.length) * 100;
 
-  const saveProgress = async (nextPoints, nextCompletedChallenges) => {
+  const saveProgress = async (nextPoints: number, nextCompletedChallenges: number[]) => {
     const progressData = {
       points: nextPoints,
       completedChallenges: nextCompletedChallenges,
@@ -81,17 +98,18 @@ export default function Playground({ points, setPoints }) {
   };
 
   const runCode = async () => {
-    const results = [];
+    const results: string[] = [];
     let allPassed = true;
 
     challenge.testCases.forEach((test, index) => {
-      const logs = [];
+      const logs: string[] = [];
       const oldLog = console.log;
-      console.log = (...args) => logs.push(args.join(" "));
+      console.log = (...args: any[]) => logs.push(args.join(" "));
 
       try {
+        // eslint-disable-next-line no-eval
         eval(`${code}\n${test.input}`);
-      } catch (error) {
+      } catch (error: any) {
         logs.push(`Error: ${error.message}`);
         allPassed = false;
       } finally {
@@ -125,7 +143,7 @@ export default function Playground({ points, setPoints }) {
 
   const resetProgress = async () => {
     if (window.confirm("Reset all progress?")) {
-      const nextCompletedChallenges = [];
+      const nextCompletedChallenges: number[] = [];
       setCompletedChallenges(nextCompletedChallenges);
       setPoints(0);
       setCurrentChallenge(0);

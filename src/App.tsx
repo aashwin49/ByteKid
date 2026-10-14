@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { Routes, Route } from "react-router-dom";
@@ -9,7 +9,7 @@ import getBadge from "./getBadge";
 import { loadLocalProgress } from "./services/progressApi";
 
 function App() {
-  const [points, setPoints] = useState(() => loadLocalProgress().points);
+  const [points, setPoints] = useState<number>(() => loadLocalProgress().points);
 
   useEffect(() => {
     localStorage.setItem("points", String(points));

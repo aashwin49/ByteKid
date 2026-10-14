@@ -1,10 +1,19 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import getBadge from "../getBadge";
-import { fetchLeaderboard, getPlayerName, loadLocalProgress } from "../services/progressApi";
+import { 
+  fetchLeaderboard, 
+  getPlayerName, 
+  loadLocalProgress, 
+  LeaderboardEntry 
+} from "../services/progressApi";
 
-function Leaderboard({ points }) {
-  const [players, setPlayers] = useState([]);
-  const [status, setStatus] = useState("Loading leaderboard...");
+interface LeaderboardProps {
+  points: number;
+}
+
+export default function Leaderboard({ points }: LeaderboardProps) {
+  const [players, setPlayers] = useState<LeaderboardEntry[]>([]);
+  const [status, setStatus] = useState<string>("Loading leaderboard...");
 
   useEffect(() => {
     let isMounted = true;
@@ -68,5 +77,3 @@ function Leaderboard({ points }) {
     </div>
   );
 }
-
-export default Leaderboard;

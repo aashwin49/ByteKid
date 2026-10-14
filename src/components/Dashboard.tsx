@@ -1,4 +1,13 @@
-export default function Dashboard({ points, badge, completed, total }) {
+import React from "react";
+
+interface DashboardProps {
+  points: number;
+  badge: string;
+  completed: number;
+  total: number;
+}
+
+export default function Dashboard({ points, badge, completed, total }: DashboardProps) {
   return (
     <section className="dashboard compact-dashboard">
       <div className="stats-grid">

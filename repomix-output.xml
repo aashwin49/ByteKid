@@ -1,0 +1,753 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/**/*.jsx, src/**/*.js
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/
+  components/
+    CodeEditor.jsx
+    Dashboard.jsx
+    Footer.jsx
+    Header.jsx
+    Navbar.jsx
+    OutputConsole.jsx
+  pages/
+    LandingPage.jsx
+    Leaderboard.jsx
+    Playground.jsx
+  services/
+    progressApi.js
+  App.jsx
+  getBadge.jsx
+  Layout.jsx
+  main.jsx
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/components/CodeEditor.jsx">
+import Editor from "@monaco-editor/react";
+
+function CodeEditor({ code, setCode }) {
+  return (
+    <Editor
+      height="200px"
+      defaultLanguage="javascript"
+      value={code}
+      onChange={(val) => setCode(val || "")}
+      theme="vs-dark"
+    />
+  );
+}
+
+export default CodeEditor;
+</file>
+
+<file path="src/components/Header.jsx">
+function Header({ title }) {
+  return (
+    <h2 className="text-2xl font-bold text-teal-400 mb-4">{title}</h2>
+  );
+}
+
+export default Header;
+</file>
+
+<file path="src/components/OutputConsole.jsx">
+export default function OutputConsole({ output }) {
+  const formatLine = (line) => {
+    if (line.startsWith("✅")) return <span className="text-green-400">{line}</span>;
+    if (line.startsWith("❌") || line.startsWith("Error:"))
+      return <span className="text-red-400">{line}</span>;
+    return <span className="text-gray-300">{line}</span>;
+  };
+
+  return (
+    <div className="rounded-lg bg-black text-white mt-4 p-4">
+      <h3 className="font-bold mb-2">Console Output</h3>
+      {output ? (
+        output.split("\n").map((line, i) => <div key={i}>{formatLine(line)}</div>)
+      ) : (
+        <p className="text-gray-400 italic">Run tests to see the output here.</p>
+      )}
+    </div>
+  );
+}
+</file>
+
+<file path="src/services/progressApi.js">
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+const PLAYER_NAME_KEY = "playerName";
+
+export const getPlayerName = () => {
+  const savedName = localStorage.getItem(PLAYER_NAME_KEY);
+
+  if (savedName) {
+    return savedName;
+  }
+
+  const defaultName = `Coder ${Math.floor(1000 + Math.random() * 9000)}`;
+  localStorage.setItem(PLAYER_NAME_KEY, defaultName);
+  return defaultName;
+};
+
+export const loadLocalProgress = () => ({
+  points: Number.parseInt(localStorage.getItem("points"), 10) || 0,
+  completedChallenges: JSON.parse(localStorage.getItem("completedChallenges") || "[]"),
+});
+
+export const saveLocalProgress = ({ points, completedChallenges }) => {
+  localStorage.setItem("points", String(points));
+  localStorage.setItem("completedChallenges", JSON.stringify(completedChallenges));
+};
+
+export const syncProgress = async ({ points, completedChallenges }) => {
+  const payload = {
+    name: getPlayerName(),
+    points,
+    completedChallenges,
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/progress`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Progress sync failed");
+    }
+
+    return await response.json();
+  } catch (error) {
+    return { offline: true, error: error.message, progress: payload };
+  }
+};
+
+export const fetchLeaderboard = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/leaderboard`);
+
+    if (!response.ok) {
+      throw new Error("Leaderboard unavailable");
+    }
+
+    return await response.json();
+  } catch {
+    const localProgress = loadLocalProgress();
+
+    return [
+      { name: "Ava", points: 50 },
+      { name: "Milo", points: 40 },
+      { name: "Zara", points: 30 },
+      { name: getPlayerName(), points: localProgress.points, isCurrentPlayer: true },
+    ];
+  }
+};
+</file>
+
+<file path="src/components/Dashboard.jsx">
+export default function Dashboard({ points, badge, completed, total }) {
+  return (
+    <section className="dashboard compact-dashboard">
+      <div className="stats-grid">
+        <div className="stat-card points">
+          <div className="stat-icon">★</div>
+          <div className="stat-content">
+            <h3>Points</h3>
+            <p>{points}</p>
+          </div>
+        </div>
+        <div className="stat-card badge">
+          <div className="stat-icon">◎</div>
+          <div className="stat-content">
+            <h3>Badge</h3>
+            <p>{badge}</p>
+          </div>
+        </div>
+        <div className="stat-card completed">
+          <div className="stat-icon">✓</div>
+          <div className="stat-content">
+            <h3>Completed</h3>
+            <p>{completed} / {total}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+</file>
+
+<file path="src/components/Footer.jsx">
+function Footer() {
+  return (
+    <footer>
+      <div className="container">
+        <p>
+          Ready to level up your coding skills? 🚀 | © {new Date().getFullYear()} ByteKid
+        </p>
+      </div>
+    </footer>
+  );
+}
+
+export default Footer;
+</file>
+
+<file path="src/components/Navbar.jsx">
+import { Link, useLocation } from "react-router-dom";
+
+function Navbar({ points, badge }) {
+  const location = useLocation();
+
+  return (
+    <header>
+      <div className="container header-content">
+        {/* Logo */}
+        <div className="logo">
+          <i className="fas fa-laptop-code"></i>
+          <span>ByteKid</span>
+        </div>
+
+        {/* Navigation Links */}
+        <nav>
+          <ul>
+            <li>
+              <Link to="/" className={location.pathname === "/" ? "active" : ""}>
+                Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/playground"
+                className={location.pathname === "/playground" ? "active" : ""}
+              >
+                Playground
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/leaderboard"
+                className={location.pathname === "/leaderboard" ? "active" : ""}
+              >
+                Leaderboard
+              </Link>
+            </li>
+          </ul>
+        </nav>
+
+        {/* ✅ Dynamic Stats */}
+        <div className="nav-stats">
+          <span className="points">⭐ {points}</span>
+          <span className="divider">|</span>
+          <span className="level">{badge}</span>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default Navbar;
+</file>
+
+<file path="src/pages/LandingPage.jsx">
+// src/pages/LandingPage.jsx
+import { Link } from "react-router-dom";
+
+export default function LandingPage() {
+  return (
+    <div className="landing-container">
+      {/* Hero Section */}
+      <section className="hero">
+        <h1 className="hero-title">
+          Welcome to <span className="brand">ByteKid 🚀</span>
+        </h1>
+        <p className="hero-subtitle">
+          Sharpen your coding skills with fun and interactive challenges.
+        </p>
+        <Link to="/playground" className="cta-btn">
+          Start Coding
+        </Link>
+      </section>
+
+      {/* Features Section */}
+      <section className="features">
+        <div className="feature-card">
+          <i className="fas fa-code"></i>
+          <h3>Interactive Playground</h3>
+          <p>Practice coding with instant feedback and test cases.</p>
+        </div>
+        <div className="feature-card">
+          <i className="fas fa-trophy"></i>
+          <h3>Earn Points & Badges</h3>
+          <p>Level up as you complete challenges and unlock badges.</p>
+        </div>
+        <div className="feature-card">
+          <i className="fas fa-users"></i>
+          <h3>Compete on Leaderboards</h3>
+          <p>Challenge your friends and climb the ranks!</p>
+        </div>
+      </section>
+    </div>
+  );
+}
+</file>
+
+<file path="src/getBadge.jsx">
+export default function getBadge(points) {
+  if (points >= 50) return "🥇 Gold Badge";
+  if (points >= 40) return "🥈 Silver Badge";
+  if (points >= 20) return "🥉 Bronze Badge";
+  return "🔒 No Badge Yet";
+}
+</file>
+
+<file path="src/Layout.jsx">
+import React from "react";
+import { Link } from "react-router-dom";
+
+export default function Layout({ children }) {
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100 font-sans">
+      {/* Navbar */}
+      <header className="py-4 px-6 md:px-12 border-b border-gray-700/50 flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-white">ByteKid</h1>
+        <nav className="flex gap-6 text-gray-300 text-sm font-medium">
+          <Link to="/">Home</Link>
+          <Link to="/playground">Playground</Link>
+          <Link to="/leaderboard">Leaderboard</Link>
+        </nav>
+      </header>
+
+      {/* Page content */}
+      <main className="p-4 md:p-8">{children}</main>
+
+      {/* Footer */}
+      <footer className="text-center p-4 text-xs text-gray-500 border-t border-gray-700/50">
+        <p>Ready to level up your coding skills?</p>
+      </footer>
+    </div>
+  );
+}
+</file>
+
+<file path="src/main.jsx">
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import App from "./App";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
+</file>
+
+<file path="src/pages/Leaderboard.jsx">
+import { useEffect, useMemo, useState } from "react";
+import getBadge from "../getBadge";
+import { fetchLeaderboard, getPlayerName, loadLocalProgress } from "../services/progressApi";
+
+function Leaderboard({ points }) {
+  const [players, setPlayers] = useState([]);
+  const [status, setStatus] = useState("Loading leaderboard...");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadLeaderboard = async () => {
+      setStatus("Loading leaderboard...");
+      const data = await fetchLeaderboard();
+
+      if (isMounted) {
+        setPlayers(data);
+        setStatus("Leaderboard ready");
+      }
+    };
+
+    loadLeaderboard();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [points]);
+
+  const sortedPlayers = useMemo(() => {
+    const playerName = getPlayerName();
+    const localProgress = loadLocalProgress();
+    const mergedPlayers = players.filter((player) => player.name !== playerName);
+
+    mergedPlayers.push({
+      name: playerName,
+      points: Math.max(points, localProgress.points),
+      isCurrentPlayer: true,
+    });
+
+    return mergedPlayers
+      .sort((a, b) => b.points - a.points)
+      .map((player, index) => ({ ...player, rank: index + 1 }));
+  }, [players, points]);
+
+  return (
+    <div className="leaderboard-container">
+      <section className="leaderboard-hero">
+        <p className="eyebrow">ByteKid Rankings</p>
+        <h1>Leaderboard</h1>
+        <p>{status}. Complete playground challenges to move your score here.</p>
+      </section>
+
+      <div className="leaderboard-list">
+        {sortedPlayers.map((player) => (
+          <article
+            key={player.name}
+            className={`leaderboard-row ${player.isCurrentPlayer ? "current-player" : ""}`}
+          >
+            <div className="rank-badge">#{player.rank}</div>
+            <div className="player-details">
+              <h3>{player.name}</h3>
+              <p>{getBadge(player.points)}</p>
+            </div>
+            <strong>{player.points} pts</strong>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default Leaderboard;
+</file>
+
+<file path="src/pages/Playground.jsx">
+import { useEffect, useState } from "react";
+import getBadge from "../getBadge";
+import {
+  getPlayerName,
+  loadLocalProgress,
+  saveLocalProgress,
+  syncProgress,
+} from "../services/progressApi";
+
+const challenges = [
+  {
+    title: "Hello World",
+    description: "Print 'Hello World' to the console.",
+    starterCode: `console.log("Hello World");`,
+    testCases: [{ input: "", expected: "Hello World" }],
+  },
+  {
+    title: "Add Two Numbers",
+    description: "Create a function add(a, b) that returns their sum.",
+    starterCode: `function add(a, b) {\n  // Your code here\n}`,
+    testCases: [
+      { input: "console.log(add(2,3));", expected: "5" },
+      { input: "console.log(add(-10,15));", expected: "5" },
+    ],
+  },
+  {
+    title: "Reverse a String",
+    description: "Write reverseString(str) to return the string reversed.",
+    starterCode: `function reverseString(str) {\n  // Your code here\n}`,
+    testCases: [
+      { input: `console.log(reverseString("hello"));`, expected: "olleh" },
+      { input: `console.log(reverseString("ByteKid"));`, expected: "diKetyB" },
+    ],
+  },
+  {
+    title: "Calculate Factorial",
+    description: "Implement factorial(n) to compute factorial of n.",
+    starterCode: `function factorial(n) {\n  // Your code here\n}`,
+    testCases: [
+      { input: "console.log(factorial(5));", expected: "120" },
+      { input: "console.log(factorial(0));", expected: "1" },
+    ],
+  },
+  {
+    title: "Palindrome Checker",
+    description: "Build isPalindrome(str) that returns true if str is a palindrome.",
+    starterCode: `function isPalindrome(str) {\n  // Your code here\n}`,
+    testCases: [
+      { input: `console.log(isPalindrome("madam"));`, expected: "true" },
+      { input: `console.log(isPalindrome("hello"));`, expected: "false" },
+    ],
+  },
+];
+
+export default function Playground({ points, setPoints }) {
+  const [code, setCode] = useState(challenges[0].starterCode);
+  const [output, setOutput] = useState("");
+  const [currentChallenge, setCurrentChallenge] = useState(0);
+  const [completedChallenges, setCompletedChallenges] = useState([]);
+  const [syncStatus, setSyncStatus] = useState("Saved locally");
+
+  useEffect(() => {
+    const saved = loadLocalProgress();
+    setCompletedChallenges(saved.completedChallenges);
+    setPoints(saved.points);
+    getPlayerName();
+  }, [setPoints]);
+
+  const challenge = challenges[currentChallenge];
+  const progress = (completedChallenges.length / challenges.length) * 100;
+
+  const saveProgress = async (nextPoints, nextCompletedChallenges) => {
+    const progressData = {
+      points: nextPoints,
+      completedChallenges: nextCompletedChallenges,
+    };
+
+    saveLocalProgress(progressData);
+    const result = await syncProgress(progressData);
+    setSyncStatus(result.offline ? "Saved locally - backend offline" : "Synced to leaderboard");
+  };
+
+  const runCode = async () => {
+    const results = [];
+    let allPassed = true;
+
+    challenge.testCases.forEach((test, index) => {
+      const logs = [];
+      const oldLog = console.log;
+      console.log = (...args) => logs.push(args.join(" "));
+
+      try {
+        eval(`${code}\n${test.input}`);
+      } catch (error) {
+        logs.push(`Error: ${error.message}`);
+        allPassed = false;
+      } finally {
+        console.log = oldLog;
+      }
+
+      const actual = logs.join("\n").trim();
+
+      if (actual === test.expected) {
+        results.push(`Test ${index + 1} passed`);
+      } else {
+        results.push(`Test ${index + 1} failed: expected "${test.expected}", got "${actual}"`);
+        allPassed = false;
+      }
+    });
+
+    if (allPassed && !completedChallenges.includes(currentChallenge)) {
+      const nextCompletedChallenges = [...completedChallenges, currentChallenge];
+      const nextPoints = points + 10;
+
+      setCompletedChallenges(nextCompletedChallenges);
+      setPoints(nextPoints);
+      await saveProgress(nextPoints, nextCompletedChallenges);
+      results.push("Challenge complete. +10 points added to the leaderboard.");
+    } else if (allPassed) {
+      results.push("Challenge already completed. Your leaderboard score is unchanged.");
+    }
+
+    setOutput(results.join("\n"));
+  };
+
+  const resetProgress = async () => {
+    if (window.confirm("Reset all progress?")) {
+      const nextCompletedChallenges = [];
+      setCompletedChallenges(nextCompletedChallenges);
+      setPoints(0);
+      setCurrentChallenge(0);
+      setCode(challenges[0].starterCode);
+      setOutput("Progress reset.");
+      await saveProgress(0, nextCompletedChallenges);
+    }
+  };
+
+  return (
+    <div className="container playground-page">
+      <section className="dashboard">
+        <div className="stats-grid">
+          <div className="stat-card points">
+            <div className="stat-icon">★</div>
+            <div className="stat-content">
+              <h3>Points</h3>
+              <p>{points}</p>
+            </div>
+          </div>
+
+          <div className="stat-card badge">
+            <div className="stat-icon">◎</div>
+            <div className="stat-content">
+              <h3>Badge</h3>
+              <p>{getBadge(points)}</p>
+            </div>
+          </div>
+
+          <div className="stat-card completed">
+            <div className="stat-icon">✓</div>
+            <div className="stat-content">
+              <h3>Completed</h3>
+              <p>{completedChallenges.length} / {challenges.length}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="progress-section">
+          <div>
+            <h3>Your Progress</h3>
+            <p>{syncStatus}</p>
+          </div>
+          <div className="progress-bar">
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <strong>{Math.round(progress)}% Complete</strong>
+        </div>
+      </section>
+
+      <section className="challenges-section">
+        <h2 className="section-title">Select a Challenge</h2>
+        <div className="challenge-cards">
+          {challenges.map((item, index) => (
+            <button
+              key={item.title}
+              className={`challenge-card ${
+                completedChallenges.includes(index) ? "completed-challenge" : ""
+              } ${currentChallenge === index ? "active-challenge" : ""}`}
+              onClick={() => {
+                setCurrentChallenge(index);
+                setCode(item.starterCode);
+                setOutput("");
+              }}
+              type="button"
+            >
+              <span className="challenge-number">{index + 1}</span>
+              <span>
+                <strong>{item.title}</strong>
+                <small>{item.description}</small>
+              </span>
+              {completedChallenges.includes(index) && <span className="completed-check">✓</span>}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="current-challenge">
+        <p className="eyebrow">Current Mission</p>
+        <h2>{challenge.title}</h2>
+        <p>{challenge.description}</p>
+      </section>
+
+      <section className="editor-container">
+        <div className="editor-header">
+          <h3>Your Code</h3>
+          <span>{challenge.testCases.length} tests</span>
+        </div>
+        <textarea
+          className="editor"
+          value={code}
+          onChange={(event) => setCode(event.target.value)}
+          spellCheck="false"
+        />
+      </section>
+
+      <div className="actions">
+        <button className="btn btn-run" onClick={runCode} type="button">
+          ▶ Run Tests
+        </button>
+        <button className="btn btn-reset" onClick={resetProgress} type="button">
+          Reset Progress
+        </button>
+      </div>
+
+      <section className="output-console">
+        <div className="console-header">
+          <h3>Output</h3>
+        </div>
+        <div className="console-content">
+          {output ? (
+            output.split("\n").map((line) => <p key={line}>{line}</p>)
+          ) : (
+            <p>Run tests to see output...</p>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+</file>
+
+<file path="src/App.jsx">
+import { useEffect, useState } from "react";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import { Routes, Route } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
+import Playground from "./pages/Playground";
+import Leaderboard from "./pages/Leaderboard";
+import getBadge from "./getBadge";
+import { loadLocalProgress } from "./services/progressApi";
+
+function App() {
+  const [points, setPoints] = useState(() => loadLocalProgress().points);
+
+  useEffect(() => {
+    localStorage.setItem("points", String(points));
+  }, [points]);
+
+  return (
+    <div className="app-wrapper">
+      <Navbar points={points} badge={getBadge(points)} />
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/playground"
+            element={<Playground points={points} setPoints={setPoints} />}
+          />
+          <Route path="/leaderboard" element={<Leaderboard points={points} />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export default App;
+</file>
+
+</files>

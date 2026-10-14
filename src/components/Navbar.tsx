@@ -1,18 +1,22 @@
+import React from "react";
 import { Link, useLocation } from "react-router-dom";
 
-function Navbar({ points, badge }) {
+interface NavbarProps {
+  points: number;
+  badge: string;
+}
+
+function Navbar({ points, badge }: NavbarProps) {
   const location = useLocation();
 
   return (
     <header>
       <div className="container header-content">
-        {/* Logo */}
         <div className="logo">
           <i className="fas fa-laptop-code"></i>
           <span>ByteKid</span>
         </div>
 
-        {/* Navigation Links */}
         <nav>
           <ul>
             <li>
@@ -39,7 +43,6 @@ function Navbar({ points, badge }) {
           </ul>
         </nav>
 
-        {/* ✅ Dynamic Stats */}
         <div className="nav-stats">
           <span className="points">⭐ {points}</span>
           <span className="divider">|</span>

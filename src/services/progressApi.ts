@@ -1,7 +1,30 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
+// Define explicit interfaces for your payloads
+export interface LocalProgress {
+  points: number;
+  completedChallenges: number[]; // Array of challenge indices
+}
+
+export interface SyncPayload extends LocalProgress {
+  name: string;
+}
+
+export interface LeaderboardEntry {
+  name: string;
+  points: number;
+  isCurrentPlayer?: boolean;
+  rank?: number;
+}
+
+export interface SyncResponse {
+  offline?: boolean;
+  error?: string;
+  progress?: SyncPayload;
+}
+
+const API_BASE_URL = import.meta.env?.VITE_API_URL || "http://localhost:5001/api";
 const PLAYER_NAME_KEY = "playerName";
 
-export const getPlayerName = () => {
+export const getPlayerName = (): string => {
   const savedName = localStorage.getItem(PLAYER_NAME_KEY);
 
   if (savedName) {
@@ -13,18 +36,18 @@ export const getPlayerName = () => {
   return defaultName;
 };
 
-export const loadLocalProgress = () => ({
-  points: Number.parseInt(localStorage.getItem("points"), 10) || 0,
+export const loadLocalProgress = (): LocalProgress => ({
+  points: Number.parseInt(localStorage.getItem("points") || "0", 10),
   completedChallenges: JSON.parse(localStorage.getItem("completedChallenges") || "[]"),
 });
 
-export const saveLocalProgress = ({ points, completedChallenges }) => {
+export const saveLocalProgress = ({ points, completedChallenges }: LocalProgress): void => {
   localStorage.setItem("points", String(points));
   localStorage.setItem("completedChallenges", JSON.stringify(completedChallenges));
 };
 
-export const syncProgress = async ({ points, completedChallenges }) => {
-  const payload = {
+export const syncProgress = async ({ points, completedChallenges }: LocalProgress): Promise<SyncResponse> => {
+  const payload: SyncPayload = {
     name: getPlayerName(),
     points,
     completedChallenges,
@@ -43,11 +66,12 @@ export const syncProgress = async ({ points, completedChallenges }) => {
 
     return await response.json();
   } catch (error) {
-    return { offline: true, error: error.message, progress: payload };
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return { offline: true, error: errorMessage, progress: payload };
   }
 };
 
-export const fetchLeaderboard = async () => {
+export const fetchLeaderboard = async (): Promise<LeaderboardEntry[]> => {
   try {
     const response = await fetch(`${API_BASE_URL}/leaderboard`);
 

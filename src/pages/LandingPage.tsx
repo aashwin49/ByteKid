@@ -1,10 +1,10 @@
-// src/pages/LandingPage.jsx
+// src/pages/LandingPage.tsx
+import React from "react";
 import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   return (
     <div className="landing-container">
-      {/* Hero Section */}
       <section className="hero">
         <h1 className="hero-title">
           Welcome to <span className="brand">ByteKid 🚀</span>
@@ -17,7 +17,6 @@ export default function LandingPage() {
         </Link>
       </section>
 
-      {/* Features Section */}
       <section className="features">
         <div className="feature-card">
           <i className="fas fa-code"></i>
